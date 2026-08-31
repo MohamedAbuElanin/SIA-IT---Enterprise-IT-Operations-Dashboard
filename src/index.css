@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#0F172A] text-slate-100 font-sans antialiased;
+  }
+}
+
+@layer components {
+  .theme-light { @apply bg-slate-100 text-slate-900; }
+  .theme-light .bg-slate-950, .theme-light .bg-slate-950\/40, .theme-light .bg-slate-950\/60, .theme-light .bg-slate-950\/80 { @apply bg-slate-50; }
+  .theme-light .bg-slate-900, .theme-light .bg-slate-900\/40, .theme-light .bg-slate-900\/50, .theme-light .bg-slate-900\/60, .theme-light .bg-slate-900\/80, .theme-light .bg-slate-900\/90 { @apply bg-white; }
+  .theme-light .border-slate-800, .theme-light .border-slate-800\/80 { @apply border-slate-200; }
+  .theme-light .text-slate-100, .theme-light .text-slate-200, .theme-light .text-slate-300 { @apply text-slate-900; }
+  .theme-light .text-slate-400, .theme-light .text-slate-500 { @apply text-slate-600; }
+  .theme-light .bg-slate-800 { @apply bg-slate-100; }
+}
+
+@layer components {
+  .progress-track { @apply h-1.5 w-full overflow-hidden rounded-full bg-slate-800; }
+  .progress-value { @apply h-full rounded-full transition-[width] duration-300; }
+  .progress-0 { width: 0%; }
+  .progress-5 { width: 5%; }
+  .progress-10 { width: 10%; }
+  .progress-15 { width: 15%; }
+  .progress-20 { width: 20%; }
+  .progress-25 { width: 25%; }
+  .progress-30 { width: 30%; }
+  .progress-35 { width: 35%; }
+  .progress-40 { width: 40%; }
+  .progress-45 { width: 45%; }
+  .progress-50 { width: 50%; }
+  .progress-55 { width: 55%; }
+  .progress-60 { width: 60%; }
+  .progress-65 { width: 65%; }
+  .progress-70 { width: 70%; }
+  .progress-75 { width: 75%; }
+  .progress-80 { width: 80%; }
+  .progress-85 { width: 85%; }
+  .progress-90 { width: 90%; }
+  .progress-95 { width: 95%; }
+  .progress-100 { width: 100%; }
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F172A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
