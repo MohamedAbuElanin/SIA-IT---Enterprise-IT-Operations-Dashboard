@@ -35,17 +35,8 @@ export const isFirebaseConfigured = (): boolean => {
 };
 
 export const getFirebaseConfigError = (): string | null => {
-  if (!apiKey || isPlaceholderValue(apiKey)) {
-    return 'مفتاح Firebase API Key غير مهيأ في ملف .env (VITE_FIREBASE_API_KEY is missing or contains placeholder).';
-  }
-  if (!projectId || isPlaceholderValue(projectId)) {
-    return 'معرف المشروع Firebase Project ID غير مهيأ في ملف .env (VITE_FIREBASE_PROJECT_ID is missing).';
-  }
-  if (!authDomain || isPlaceholderValue(authDomain)) {
-    return 'نطاق المصادقة Firebase Auth Domain غير مهيأ في ملف .env (VITE_FIREBASE_AUTH_DOMAIN is missing).';
-  }
-  if (!appId || isPlaceholderValue(appId)) {
-    return 'معرف التطبيق Firebase App ID غير مهيأ في ملف .env (VITE_FIREBASE_APP_ID is missing).';
+  if (!isFirebaseConfigured()) {
+    return 'إعدادات Firebase غير متوفرة. يرجى ضبط متغيرات VITE_FIREBASE_* في ملف .env (Firebase configuration is missing. Please configure the required VITE_FIREBASE_* environment variables).';
   }
   return null;
 };

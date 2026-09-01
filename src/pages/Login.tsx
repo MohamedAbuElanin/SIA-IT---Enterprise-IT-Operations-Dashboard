@@ -61,12 +61,12 @@ export const LoginPage: React.FC = () => {
       addToast({
         tone: 'success',
         title: 'تم تسجيل الدخول بنجاح',
-        description: `مرحباً بك في نظام SIA IT Operations Dashboard`,
+        description: 'مرحباً بك في نظام SIA IT Operations Dashboard',
       });
       const destination = (location.state as any)?.from?.pathname || '/';
       navigate(destination, { replace: true });
     } catch (err: any) {
-      // Error is set in store and displayed in the UI banner
+      // Error is stored in useAuthStore and rendered in the alert box
     } finally {
       setIsSubmitting(false);
     }
@@ -104,9 +104,9 @@ export const LoginPage: React.FC = () => {
             <div className="w-14 h-14 bg-gradient-to-tr from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
               <Lock className="w-7 h-7 text-blue-400" />
             </div>
-            <h2 className="text-xl font-bold text-slate-100 tracking-tight">تسجيل الدخول للمنظومة</h2>
+            <h2 className="text-xl font-bold text-slate-100 tracking-tight">تسجيل الدخول إلى المنظومة</h2>
             <p className="text-xs text-slate-400 leading-relaxed">
-              يرجى إدخال بيانات الاعتماد المعتمدة للوصول إلى لوحة التحكم والعمليات
+              يرجى إدخال بيانات الاعتماد المعتمدة للوصول إلى لوحة التحكم والعمليات.
             </p>
           </div>
 
@@ -115,7 +115,7 @@ export const LoginPage: React.FC = () => {
             <div className="mb-5 p-3.5 rounded-xl bg-rose-950/40 border border-rose-800/80 flex items-start gap-3 text-rose-300 text-xs animate-shake">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
               <div className="flex-1 text-right">
-                <span className="font-semibold block">{validationError || error}</span>
+                <span className="font-semibold block leading-relaxed">{validationError || error}</span>
               </div>
             </div>
           )}
