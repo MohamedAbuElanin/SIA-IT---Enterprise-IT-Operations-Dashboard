@@ -14,6 +14,7 @@
     "@tanstack/react-table": "^8.20.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "firebase": "^12.18.0",
     "framer-motion": "^11.3.28",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",

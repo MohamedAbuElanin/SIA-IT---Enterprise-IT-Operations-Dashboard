@@ -114,6 +114,13 @@ export const InventoryPage: React.FC = () => {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sku || !name) return;
+    if (formMode === 'add') {
+      const isDuplicate = inventory.some((i) => i.sku.trim().toLowerCase() === sku.trim().toLowerCase());
+      if (isDuplicate) {
+        addToast({ tone: 'error', title: 'SKU Duplicate', description: `An inventory item with SKU "${sku}" already exists.` });
+        return;
+      }
+    }
     if (formMode === 'edit') {
       setShowSaveConfirm(true);
     } else {

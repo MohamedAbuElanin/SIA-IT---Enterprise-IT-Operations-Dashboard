@@ -8,6 +8,7 @@ import { useUiStore } from '../../store/useUiStore';
 import { cn } from '../../utils/cn';
 import { ToastRegion } from '../ui/ToastRegion';
 import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut';
+import { useFirestoreSubscriptions } from '../../hooks/useFirestoreSubscriptions';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
@@ -16,6 +17,7 @@ export const AppLayout: React.FC = () => {
   const { toggleSidebar } = useUiStore();
   const location = useLocation();
   useKeyboardShortcut('b', toggleSidebar, { ctrlOrMeta: true });
+  useFirestoreSubscriptions();
 
   return (
     <div className={cn('min-h-screen bg-[#0F172A] text-slate-100 flex flex-col', `theme-${theme}`)}>

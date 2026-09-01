@@ -1,5 +1,17 @@
 // Updated Domain Types for SIA Enterprise IT Operations Dashboard
 
+// ─── Shared Firestore store state ──────────────────────────────────────────
+/**
+ * Mixin interface added to every Zustand store that is backed by Firestore.
+ * `loading` is true until the first onSnapshot response arrives.
+ * `error` holds the last Firestore error message, or null if healthy.
+ */
+export interface FirestoreStoreState {
+  loading: boolean;
+  error: string | null;
+}
+
+// ─── Domain enums ──────────────────────────────────────────────────────────
 export type AssetStatus = 'Active' | 'In Repair' | 'Spare Stock' | 'Decommissioned' | 'Pending Audit';
 
 export type InventoryCategory =

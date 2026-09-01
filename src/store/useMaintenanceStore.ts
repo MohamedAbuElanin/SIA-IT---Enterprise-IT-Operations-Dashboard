@@ -1,97 +1,120 @@
-import { create } from 'zustand';
-import { MaintenanceRecord, TicketStatus } from '../types';
-import initialRecords from '../data/maintenance.json';
+// src/store/useMaintenanceStore.ts
+// Zustand store for maintenance records — backed by Cloud Firestore.
 
-interface MaintenanceStore {
+import { create } from 'zustand';
+import { MaintenanceRecord, TicketStatus, FirestoreStoreState } from '../types';
+import {
+  subscribeToMaintenance,
+  createMaintenanceDoc,
+  updateMaintenanceDoc,
+  updateMaintenanceStatusDoc,
+  deleteMaintenanceDoc,
+} from '../lib/firestore/maintenanceService';
+
+interface MaintenanceStore extends FirestoreStoreState {
   records: MaintenanceRecord[];
   selectedRecord: MaintenanceRecord | null;
+  // UI-only filters
   searchQuery: string;
   priorityFilter: string;
   statusFilter: string;
   viewMode: 'kanban' | 'table';
+  _unsubscribe: (() => void) | null;
 
+  // Subscription lifecycle
+  subscribe: () => void;
+  unsubscribe: () => void;
+
+  // UI state setters
   setSearchQuery: (query: string) => void;
   setPriorityFilter: (priority: string) => void;
   setStatusFilter: (status: string) => void;
   setViewMode: (mode: 'kanban' | 'table') => void;
   setSelectedRecord: (record: MaintenanceRecord | null) => void;
-  createRecord: (record: Omit<MaintenanceRecord, 'id' | 'ticketNumber' | 'timeline'>) => void;
-  updateRecordStatus: (id: string, status: TicketStatus) => void;
-  updateRecord: (id: string, updated: Partial<MaintenanceRecord>) => void;
-  deleteRecord: (id: string) => void;
+
+  // Firestore CRUD
+  createRecord: (record: Omit<MaintenanceRecord, 'id' | 'ticketNumber' | 'timeline'>) => Promise<void>;
+  updateRecordStatus: (id: string, status: TicketStatus) => Promise<void>;
+  updateRecord: (id: string, updated: Partial<MaintenanceRecord>) => Promise<void>;
+  deleteRecord: (id: string) => Promise<void>;
 }
 
-export const useMaintenanceStore = create<MaintenanceStore>((set) => ({
-  records: initialRecords as MaintenanceRecord[],
+export const useMaintenanceStore = create<MaintenanceStore>((set, get) => ({
+  // ── Firestore state ────────────────────────────────────────────────────────
+  records: [],
+  loading: true,
+  error: null,
+  _unsubscribe: null,
+
+  // ── UI state ───────────────────────────────────────────────────────────────
   selectedRecord: null,
   searchQuery: '',
   priorityFilter: 'ALL',
   statusFilter: 'ALL',
   viewMode: 'table',
 
+  // ── Subscription lifecycle ─────────────────────────────────────────────────
+  subscribe: () => {
+    if (get()._unsubscribe) return;
+    const unsub = subscribeToMaintenance(
+      (records) => set({ records, loading: false, error: null }),
+      (err) => set({ error: err.message, loading: false }),
+    );
+    set({ _unsubscribe: unsub });
+  },
+
+  unsubscribe: () => {
+    get()._unsubscribe?.();
+    set({ _unsubscribe: null });
+  },
+
+  // ── UI state setters ───────────────────────────────────────────────────────
   setSearchQuery: (query) => set({ searchQuery: query }),
   setPriorityFilter: (priority) => set({ priorityFilter: priority }),
   setStatusFilter: (status) => set({ statusFilter: status }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setSelectedRecord: (record) => set({ selectedRecord: record }),
 
-  createRecord: (recordData) =>
-    set((state) => {
-      const ticketNum = `INC-2026-${Math.floor(885 + Math.random() * 100)}`;
-      const newRecord: MaintenanceRecord = {
-        ...recordData,
-        id: `mnt-${Date.now()}`,
-        ticketNumber: ticketNum,
-        timeline: [
-          {
-            id: `tl-${Date.now()}-1`,
-            timestamp: new Date().toISOString(),
-            author: 'IT Officer',
-            note: `Ticket created. Problem: ${recordData.problem.substring(0, 100)}...`,
-            status: 'Open',
-          },
-        ],
-      };
-      return { records: [newRecord, ...state.records] };
-    }),
+  // ── Firestore CRUD ─────────────────────────────────────────────────────────
+  createRecord: async (recordData) => {
+    try {
+      await createMaintenanceDoc(recordData);
+    } catch (err) {
+      set({ error: (err as Error).message });
+      throw err;
+    }
+  },
 
-  updateRecordStatus: (id, status) =>
-    set((state) => ({
-      records: state.records.map((r) => {
-        if (r.id !== id) return r;
-        return {
-          ...r,
-          status,
-          timeline: [
-            ...r.timeline,
-            {
-              id: `tl-${Date.now()}`,
-              timestamp: new Date().toISOString(),
-              author: 'IT Officer',
-              note: `Status changed to: ${status}`,
-              status,
-            },
-          ],
-        };
-      }),
-      selectedRecord:
-        state.selectedRecord?.id === id
-          ? { ...state.selectedRecord, status }
-          : state.selectedRecord,
-    })),
+  updateRecordStatus: async (id, status) => {
+    try {
+      await updateMaintenanceStatusDoc(id, status);
+      // Sync selectedRecord if it's the ticket being updated
+      const sel = get().selectedRecord;
+      if (sel?.id === id) set({ selectedRecord: { ...sel, status } });
+    } catch (err) {
+      set({ error: (err as Error).message });
+      throw err;
+    }
+  },
 
-  updateRecord: (id, updated) =>
-    set((state) => ({
-      records: state.records.map((r) => (r.id === id ? { ...r, ...updated } : r)),
-      selectedRecord:
-        state.selectedRecord?.id === id
-          ? { ...state.selectedRecord, ...updated }
-          : state.selectedRecord,
-    })),
+  updateRecord: async (id, updated) => {
+    try {
+      await updateMaintenanceDoc(id, updated);
+      const sel = get().selectedRecord;
+      if (sel?.id === id) set({ selectedRecord: { ...sel, ...updated } });
+    } catch (err) {
+      set({ error: (err as Error).message });
+      throw err;
+    }
+  },
 
-  deleteRecord: (id) =>
-    set((state) => ({
-      records: state.records.filter((r) => r.id !== id),
-      selectedRecord: state.selectedRecord?.id === id ? null : state.selectedRecord,
-    })),
+  deleteRecord: async (id) => {
+    try {
+      await deleteMaintenanceDoc(id);
+      if (get().selectedRecord?.id === id) set({ selectedRecord: null });
+    } catch (err) {
+      set({ error: (err as Error).message });
+      throw err;
+    }
+  },
 }));

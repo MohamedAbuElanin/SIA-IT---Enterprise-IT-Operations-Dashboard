@@ -1,63 +1,94 @@
-import { create } from 'zustand';
-import { SystemAlert } from '../types';
-import initialAlerts from '../data/alerts.json';
+// src/store/useNotificationStore.ts
+// Zustand store for System Alerts — backed by Cloud Firestore.
 
-interface NotificationStore {
+import { create } from 'zustand';
+import { SystemAlert, FirestoreStoreState } from '../types';
+import {
+  subscribeToAlerts,
+  addAlertDoc,
+  markAlertReadDoc,
+  markAllAlertsReadDoc,
+  clearAlertDoc,
+} from '../lib/firestore/alertService';
+
+interface NotificationStore extends FirestoreStoreState {
   alerts: SystemAlert[];
   unreadCount: number;
   isOpen: boolean;
+  _unsubscribe: (() => void) | null;
+
+  subscribe: () => void;
+  unsubscribe: () => void;
 
   setIsOpen: (open: boolean) => void;
   toggleOpen: () => void;
-  markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
-  clearAlert: (id: string) => void;
-  addAlert: (alert: Omit<SystemAlert, 'id' | 'read'>) => void;
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  clearAlert: (id: string) => Promise<void>;
+  addAlert: (alert: Omit<SystemAlert, 'id' | 'read'>) => Promise<void>;
 }
 
-export const useNotificationStore = create<NotificationStore>((set) => ({
-  alerts: (initialAlerts as SystemAlert[]) || [],
-  unreadCount: Array.isArray(initialAlerts) ? (initialAlerts as SystemAlert[]).filter((a) => !a.read).length : 0,
+export const useNotificationStore = create<NotificationStore>((set, get) => ({
+  alerts: [],
+  unreadCount: 0,
   isOpen: false,
+  loading: true,
+  error: null,
+  _unsubscribe: null,
+
+  subscribe: () => {
+    if (get()._unsubscribe) return;
+    const unsub = subscribeToAlerts(
+      (alerts) => {
+        const unreadCount = alerts.filter((a) => !a.read).length;
+        set({ alerts, unreadCount, loading: false, error: null });
+      },
+      (err) => set({ error: err.message, loading: false })
+    );
+    set({ _unsubscribe: unsub });
+  },
+
+  unsubscribe: () => {
+    get()._unsubscribe?.();
+    set({ _unsubscribe: null });
+  },
 
   setIsOpen: (open) => set({ isOpen: open }),
   toggleOpen: () => set((state) => ({ isOpen: !state.isOpen })),
 
-  markAsRead: (id) =>
-    set((state) => {
-      const updated = state.alerts.map((a) => (a.id === id ? { ...a, read: true } : a));
-      return {
-        alerts: updated,
-        unreadCount: updated.filter((a) => !a.read).length,
-      };
-    }),
+  markAsRead: async (id) => {
+    try {
+      await markAlertReadDoc(id);
+    } catch (err) {
+      set({ error: (err as Error).message });
+      throw err;
+    }
+  },
 
-  markAllAsRead: () =>
-    set((state) => ({
-      alerts: state.alerts.map((a) => ({ ...a, read: true })),
-      unreadCount: 0,
-    })),
+  markAllAsRead: async () => {
+    try {
+      await markAllAlertsReadDoc();
+    } catch (err) {
+      set({ error: (err as Error).message });
+      throw err;
+    }
+  },
 
-  clearAlert: (id) =>
-    set((state) => {
-      const updated = state.alerts.filter((a) => a.id !== id);
-      return {
-        alerts: updated,
-        unreadCount: updated.filter((a) => !a.read).length,
-      };
-    }),
+  clearAlert: async (id) => {
+    try {
+      await clearAlertDoc(id);
+    } catch (err) {
+      set({ error: (err as Error).message });
+      throw err;
+    }
+  },
 
-  addAlert: (alertData) =>
-    set((state) => {
-      const newAlert: SystemAlert = {
-        ...alertData,
-        id: `alt-${Date.now()}`,
-        read: false,
-      };
-      const updated = [newAlert, ...state.alerts];
-      return {
-        alerts: updated,
-        unreadCount: updated.filter((a) => !a.read).length,
-      };
-    }),
+  addAlert: async (alertData) => {
+    try {
+      await addAlertDoc(alertData);
+    } catch (err) {
+      set({ error: (err as Error).message });
+      throw err;
+    }
+  },
 }));

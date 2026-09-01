@@ -174,6 +174,13 @@ export const AssetsPage: React.FC = () => {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!deviceName || !assetNumber) return;
+    if (formMode === 'add') {
+      const isDuplicate = assets.some((a) => a.assetNumber.trim().toLowerCase() === assetNumber.trim().toLowerCase());
+      if (isDuplicate) {
+        addToast({ tone: 'error', title: 'Asset Tag Duplicate', description: `An asset with tag "${assetNumber}" already exists.` });
+        return;
+      }
+    }
     if (formMode === 'edit') {
       setShowSaveConfirm(true);
     } else {

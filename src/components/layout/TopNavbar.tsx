@@ -1,12 +1,18 @@
 import React, { useEffect } from 'react';
-import { Bell, Search, Command } from 'lucide-react';
+import { Bell, Search, Command, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Breadcrumb } from './Breadcrumb';
 import { useUiStore } from '../../store/useUiStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useToastStore } from '../../store/useToastStore';
 
 export const TopNavbar: React.FC = () => {
+  const navigate = useNavigate();
   const { toggleCommandPalette, activeRole } = useUiStore();
   const { unreadCount, toggleOpen } = useNotificationStore();
+  const { logout, username } = useAuthStore();
+  const { addToast } = useToastStore();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -18,6 +24,24 @@ export const TopNavbar: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleCommandPalette]);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      addToast({
+        tone: 'info',
+        title: 'تم تسجيل الخروج',
+        description: 'تم إنهاء الجلسة الآمنة بنجاح.',
+      });
+      navigate('/login', { replace: true });
+    } catch (err: any) {
+      addToast({
+        tone: 'error',
+        title: 'خطأ في تسجيل الخروج',
+        description: err.message,
+      });
+    }
+  };
 
   return (
     <header className="h-16 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-6 flex items-center justify-between sticky top-0 z-30 select-none">
@@ -68,10 +92,22 @@ export const TopNavbar: React.FC = () => {
         {/* User Role Badge */}
         <div className="hidden sm:flex items-center gap-2 pr-2 border-r border-slate-800">
           <div className="text-right">
-            <p className="text-xs font-semibold text-slate-200 max-w-[200px] truncate">{activeRole}</p>
+            <p className="text-xs font-semibold text-slate-200 max-w-[200px] truncate">
+              {username || activeRole}
+            </p>
             <p className="text-[10px] text-slate-500 font-mono">HQ Logistics Hub</p>
           </div>
         </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-950/30 hover:bg-rose-900/50 border border-rose-800/60 rounded-lg text-rose-300 text-xs font-medium transition-all duration-150 cursor-pointer shadow-sm"
+          title="تسجيل الخروج من النظام"
+        >
+          <LogOut className="w-3.5 h-3.5 text-rose-400" />
+          <span className="hidden md:inline">خروج</span>
+        </button>
       </div>
     </header>
   );

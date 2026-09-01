@@ -14,8 +14,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
+  LogOut,
 } from 'lucide-react';
 import { useUiStore } from '../../store/useUiStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useToastStore } from '../../store/useToastStore';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 
 const navigationItems = [
@@ -33,6 +37,27 @@ const navigationItems = [
 
 export const Sidebar: React.FC = () => {
   const { isSidebarCollapsed, toggleSidebar } = useUiStore();
+  const { logout } = useAuthStore();
+  const { addToast } = useToastStore();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      addToast({
+        tone: 'info',
+        title: 'تم تسجيل الخروج',
+        description: 'تم إنهاء الجلسة بنجاح.',
+      });
+      navigate('/login', { replace: true });
+    } catch (err: any) {
+      addToast({
+        tone: 'error',
+        title: 'خطأ',
+        description: err.message,
+      });
+    }
+  };
 
   return (
     <aside
@@ -106,15 +131,26 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Sidebar Footer */}
-      {!isSidebarCollapsed && (
-        <div className="p-4 border-t border-slate-800 bg-slate-950/40">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold text-slate-300">SIA AutoParts IT</span>
-            <span className="font-mono text-[10px] text-slate-500">v2.4.0</span>
+      <div className="p-3 border-t border-slate-800 bg-slate-950/40 space-y-2">
+        <button
+          onClick={handleLogout}
+          className={cn(
+            'w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-900/60 transition-all cursor-pointer',
+            isSidebarCollapsed && 'justify-center px-0'
+          )}
+          title="تسجيل الخروج"
+        >
+          <LogOut className="w-4 h-4 shrink-0 text-rose-400" />
+          {!isSidebarCollapsed && <span>تسجيل الخروج</span>}
+        </button>
+
+        {!isSidebarCollapsed && (
+          <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-500">
+            <span>SIA AutoParts IT</span>
+            <span className="font-mono text-[10px]">v2.4.0</span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-1">HQ Logistics Backbone</p>
-        </div>
-      )}
+        )}
+      </div>
     </aside>
   );
 };
