@@ -1,0 +1,147 @@
+mutation CreateAsset($data: Asset_Data!) @auth(level: USER) {
+  asset_insert(data: $data)
+}
+
+mutation UpdateAsset($id: UUID!, $data: Asset_Data!) @auth(level: USER) {
+  asset_update(id: $id, data: $data)
+}
+
+mutation DeleteAsset($id: UUID!) @auth(level: USER) {
+  asset_delete(id: $id)
+}
+
+query GetAsset($id: UUID!) @auth(level: USER) {
+  asset(id: $id) {
+    name
+    type
+    status
+    ipAddress
+    location
+    lastMaintenanceDate
+  }
+}
+
+query ListAssets @auth(level: PUBLIC, insecureReason: "Public asset registry") {
+  assets {
+    id
+    name
+    status
+  }
+}
+
+mutation CreateIncident($data: Incident_Data!) @auth(level: USER) {
+  incident_insert(data: $data)
+}
+
+mutation UpdateIncident($id: UUID!, $data: Incident_Data!) @auth(level: USER) {
+  incident_update(id: $id, data: $data)
+}
+
+mutation DeleteIncident($id: UUID!) @auth(level: USER) {
+  incident_delete(id: $id)
+}
+
+query GetIncident($id: UUID!) @auth(level: USER) {
+  incident(id: $id) {
+    title
+    severity
+    status
+    createdAt
+    description
+  }
+}
+
+query ListIncidents @auth(level: USER) {
+  incidents {
+    id
+    title
+    status
+  }
+}
+
+mutation CreateTicket($data: Ticket_Data!) @auth(level: USER) {
+  ticket_insert(data: $data)
+}
+
+mutation UpdateTicket($id: UUID!, $data: Ticket_Data!) @auth(level: USER) {
+  ticket_update(id: $id, data: $data)
+}
+
+mutation DeleteTicket($id: UUID!) @auth(level: USER) {
+  ticket_delete(id: $id)
+}
+
+query GetTicket($id: UUID!) @auth(level: USER) {
+  ticket(id: $id) {
+    title
+    priority
+    status
+    createdAt
+  }
+}
+
+query ListTickets @auth(level: USER) {
+  tickets(where: {assignedToId: {eq_expr: "auth.uid"}}) {
+    id
+    title
+    status
+  }
+}
+
+mutation CreateService($data: Service_Data!) @auth(level: USER) {
+  service_insert(data: $data)
+}
+
+mutation UpdateService($id: UUID!, $data: Service_Data!) @auth(level: USER) {
+  service_update(id: $id, data: $data)
+}
+
+mutation DeleteService($id: UUID!) @auth(level: USER) {
+  service_delete(id: $id)
+}
+
+query GetService($id: UUID!) @auth(level: PUBLIC, insecureReason: "Public service directory") {
+  service(id: $id) {
+    name
+    ownerTeam
+    slaTarget
+    healthScore
+  }
+}
+
+query ListServices @auth(level: PUBLIC, insecureReason: "Public service directory") {
+  services {
+    id
+    name
+    healthScore
+  }
+}
+
+mutation CreateUser($data: User_Data!) @auth(level: USER) {
+  user_insert(data: $data)
+}
+
+mutation UpdateUser($id: UUID!, $data: User_Data!) @auth(level: USER) {
+  user_update(id: $id, data: $data)
+}
+
+mutation DeleteUser($id: UUID!) @auth(level: USER) {
+  user_delete(id: $id)
+}
+
+query GetUser($id: UUID!) @auth(level: USER) {
+  user(id: $id) {
+    email
+    role
+    department
+    phoneNumber
+  }
+}
+
+query ListUsers @auth(level: USER) {
+  users {
+    id
+    email
+    role
+  }
+}

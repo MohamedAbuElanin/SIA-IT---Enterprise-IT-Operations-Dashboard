@@ -1,0 +1,562 @@
+extend type Mutation {
+  """
+  ✨ Insert a single `Asset` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  asset_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Asset_Data!
+  ): Asset_KeyOutput! @fdc_generated(from: "Asset", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Incident` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  incident_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Incident_Data!
+  ): Incident_KeyOutput! @fdc_generated(from: "Incident", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Service` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  service_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Service_Data!
+  ): Service_KeyOutput! @fdc_generated(from: "Service", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Ticket` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  ticket_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Ticket_Data!
+  ): Ticket_KeyOutput! @fdc_generated(from: "Ticket", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `User` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  user_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: User_Data!
+  ): User_KeyOutput! @fdc_generated(from: "User", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert `Asset` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  asset_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Asset_Data!]!
+  ): [Asset_KeyOutput!]! @fdc_generated(from: "Asset", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Incident` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  incident_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Incident_Data!]!
+  ): [Incident_KeyOutput!]! @fdc_generated(from: "Incident", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Service` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  service_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Service_Data!]!
+  ): [Service_KeyOutput!]! @fdc_generated(from: "Service", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Ticket` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  ticket_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Ticket_Data!]!
+  ): [Ticket_KeyOutput!]! @fdc_generated(from: "Ticket", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `User` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  user_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [User_Data!]!
+  ): [User_KeyOutput!]! @fdc_generated(from: "User", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert or update a single `Asset` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Asset`.
+  """
+  asset_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Asset_Data!
+  ): Asset_KeyOutput! @fdc_generated(from: "Asset", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Incident` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Incident`.
+  """
+  incident_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Incident_Data!
+  ): Incident_KeyOutput! @fdc_generated(from: "Incident", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Service` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Service`.
+  """
+  service_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Service_Data!
+  ): Service_KeyOutput! @fdc_generated(from: "Service", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Ticket` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Ticket`.
+  """
+  ticket_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Ticket_Data!
+  ): Ticket_KeyOutput! @fdc_generated(from: "Ticket", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `User` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `User`.
+  """
+  user_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: User_Data!
+  ): User_KeyOutput! @fdc_generated(from: "User", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update `Asset` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Asset`.
+  """
+  asset_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Asset_Data!]!
+  ): [Asset_KeyOutput!]! @fdc_generated(from: "Asset", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Incident` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Incident`.
+  """
+  incident_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Incident_Data!]!
+  ): [Incident_KeyOutput!]! @fdc_generated(from: "Incident", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Service` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Service`.
+  """
+  service_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Service_Data!]!
+  ): [Service_KeyOutput!]! @fdc_generated(from: "Service", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Ticket` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Ticket`.
+  """
+  ticket_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Ticket_Data!]!
+  ): [Ticket_KeyOutput!]! @fdc_generated(from: "Ticket", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `User` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `User`.
+  """
+  user_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [User_Data!]!
+  ): [User_KeyOutput!]! @fdc_generated(from: "User", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Update a single `Asset` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Asset` or `null` if not found.
+  """
+  asset_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Asset_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Asset_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Asset_Data!
+  ): Asset_KeyOutput @fdc_generated(from: "Asset", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Incident` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Incident` or `null` if not found.
+  """
+  incident_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Incident_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Incident_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Incident_Data!
+  ): Incident_KeyOutput @fdc_generated(from: "Incident", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Service` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Service` or `null` if not found.
+  """
+  service_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Service_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Service_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Service_Data!
+  ): Service_KeyOutput @fdc_generated(from: "Service", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Ticket` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Ticket` or `null` if not found.
+  """
+  ticket_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Ticket_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Ticket_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Ticket_Data!
+  ): Ticket_KeyOutput @fdc_generated(from: "Ticket", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `User` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `User` or `null` if not found.
+  """
+  user_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: User_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: User_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: User_Data!
+  ): User_KeyOutput @fdc_generated(from: "User", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update `Asset` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  asset_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Asset_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Asset_Data!
+  ): Int! @fdc_generated(from: "Asset", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Incident` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  incident_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Incident_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Incident_Data!
+  ): Int! @fdc_generated(from: "Incident", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Service` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  service_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Service_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Service_Data!
+  ): Int! @fdc_generated(from: "Service", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Ticket` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  ticket_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Ticket_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Ticket_Data!
+  ): Int! @fdc_generated(from: "Ticket", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `User` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  user_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: User_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: User_Data!
+  ): Int! @fdc_generated(from: "User", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Delete a single `Asset` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  asset_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Asset_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Asset_FirstRow
+  ): Asset_KeyOutput @fdc_generated(from: "Asset", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Incident` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  incident_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Incident_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Incident_FirstRow
+  ): Incident_KeyOutput @fdc_generated(from: "Incident", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Service` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  service_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Service_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Service_FirstRow
+  ): Service_KeyOutput @fdc_generated(from: "Service", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Ticket` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  ticket_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Ticket_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Ticket_FirstRow
+  ): Ticket_KeyOutput @fdc_generated(from: "Ticket", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `User` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  user_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: User_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: User_FirstRow
+  ): User_KeyOutput @fdc_generated(from: "User", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete `Asset` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  asset_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Asset_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Asset", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Incident` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  incident_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Incident_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Incident", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Service` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  service_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Service_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Service", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Ticket` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  ticket_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Ticket_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Ticket", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `User` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  user_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: User_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "User", purpose: DELETE_MULTIPLE)
+}

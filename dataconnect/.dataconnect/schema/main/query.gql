@@ -1,0 +1,267 @@
+extend type Query {
+  """
+  ✨ Look up a single `Asset` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  asset(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Asset_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Asset_FirstRow
+  ): Asset @fdc_generated(from: "Asset", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Incident` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  incident(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Incident_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Incident_FirstRow
+  ): Incident @fdc_generated(from: "Incident", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Service` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  service(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Service_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Service_FirstRow
+  ): Service @fdc_generated(from: "Service", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Ticket` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  ticket(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Ticket_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Ticket_FirstRow
+  ): Ticket @fdc_generated(from: "Ticket", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `User` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  user(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: User_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: User_FirstRow
+  ): User @fdc_generated(from: "User", purpose: QUERY_SINGLE)
+  """
+  ✨ List `Asset` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  assets(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Asset_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Asset_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Asset_Having
+  ): [Asset!]! @fdc_generated(from: "Asset", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Incident` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  incidents(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Incident_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Incident_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Incident_Having
+  ): [Incident!]! @fdc_generated(from: "Incident", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Service` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  services(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Service_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Service_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Service_Having
+  ): [Service!]! @fdc_generated(from: "Service", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Ticket` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  tickets(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Ticket_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Ticket_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Ticket_Having
+  ): [Ticket!]! @fdc_generated(from: "Ticket", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `User` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  users(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: User_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [User_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: User_Having
+  ): [User!]! @fdc_generated(from: "User", purpose: QUERY_MULTIPLE)
+}

@@ -1,0 +1,29 @@
+mutation SeedDatabase @transaction {
+  user_insertMany(data: [
+    { email: "alice@example.com", role: "admin", department: "IT" },
+    { email: "bob@example.com", role: "engineer", department: "Engineering" },
+    { email: "charlie@example.com", role: "analyst", department: "Operations" }
+  ])
+  
+  asset_insertMany(data: [
+    { name: "Server-01", type: "Server", status: "Active", ipAddress: "192.168.1.1" },
+    { name: "Router-A", type: "Networking", status: "Maintenance", ipAddress: "192.168.1.254" },
+    { name: "Workstation-7", type: "PC", status: "Active", ipAddress: "192.168.1.50" }
+  ])
+
+  incident_insertMany(data: [
+    { title: "High CPU Usage", severity: "Medium", status: "Open", createdAt: "2023-10-01T10:00:00Z", asset: { id: "00000000-0000-0000-0000-000000000000" } },
+    { title: "Network Timeout", severity: "High", status: "Resolved", createdAt: "2023-09-25T14:30:00Z", resolvedAt: "2023-09-25T16:00:00Z", asset: { id: "00000000-0000-0000-0000-000000000001" } }
+  ])
+
+  ticket_insertMany(data: [
+    { title: "Access Request", priority: "Low", status: "New", createdAt: "2023-10-05T09:00:00Z", assetId: "00000000-0000-0000-0000-000000000002" },
+    { title: "Disk Space Full", priority: "High", status: "InProgress", createdAt: "2023-10-06T11:00:00Z", assetId: "00000000-0000-0000-0000-000000000000" }
+  ])
+
+  service_insertMany(data: [
+    { name: "AuthService", ownerTeam: "Security", slaTarget: 99.9, healthScore: 98.5 },
+    { name: "LoggingService", ownerTeam: "Infrastructure", slaTarget: 99.5, healthScore: 95.0 },
+    { name: "BillingService", ownerTeam: "Finance", slaTarget: 99.99, healthScore: 99.2 }
+  ])
+}

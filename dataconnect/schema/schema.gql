@@ -1,0 +1,42 @@
+type User @table {
+  email: String!
+  role: String!
+  department: String!
+  phoneNumber: String
+}
+
+type Asset @table {
+  name: String!
+  type: String!
+  status: String!
+  ipAddress: String!
+  location: String
+  lastMaintenanceDate: Date
+}
+
+type Incident @table {
+  title: String!
+  severity: String!
+  status: String!
+  createdAt: Timestamp!
+  description: String
+  resolvedAt: Timestamp
+  asset: Asset!
+}
+
+type Ticket @table {
+  title: String!
+  priority: String!
+  status: String!
+  createdAt: Timestamp!
+  description: String
+  assignedTo: User
+  asset: Asset
+}
+
+type Service @table {
+  name: String!
+  ownerTeam: String!
+  slaTarget: Float
+  healthScore: Float
+}
