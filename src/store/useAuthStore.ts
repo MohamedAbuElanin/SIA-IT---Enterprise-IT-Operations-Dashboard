@@ -4,14 +4,22 @@
 import { create } from 'zustand';
 import {
   User,
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
 } from 'firebase/auth';
 import { auth, isFirebaseConfigured, getFirebaseConfigError } from '../lib/firebase';
 
+const LOCAL_SESSION_KEY = 'sia-it-ops-session';
+
+export interface SessionUser {
+  uid: string;
+  email: string | null;
+}
+
 interface AuthState {
-  user: User | null;
+  user: SessionUser | null;
   loading: boolean;
   error: string | null;
   username: string | null;
@@ -22,33 +30,78 @@ interface AuthState {
   clearError: () => void;
 }
 
+const toSessionUser = (firebaseUser: User): SessionUser => ({
+  uid: firebaseUser.uid,
+  email: firebaseUser.email,
+});
+
+const usernameFromSession = (session: SessionUser, fallback: string): string => {
+  if (session.email) return session.email.split('@')[0];
+  return fallback;
+};
+
+const readLocalSession = (): { user: SessionUser; username: string } | null => {
+  try {
+    const raw = sessionStorage.getItem(LOCAL_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { user?: SessionUser; username?: string };
+    if (!parsed?.user?.uid) return null;
+    return {
+      user: parsed.user,
+      username: parsed.username || usernameFromSession(parsed.user, 'user'),
+    };
+  } catch {
+    return null;
+  }
+};
+
+const writeLocalSession = (user: SessionUser, username: string): void => {
+  sessionStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify({ user, username }));
+};
+
+const clearLocalSession = (): void => {
+  sessionStorage.removeItem(LOCAL_SESSION_KEY);
+};
+
 // Convert input username into deterministic internal Firebase email using VITE_ADMIN_EMAIL or default domain
 export const resolveInternalEmail = (username: string): string => {
   const trimmed = username.trim().toLowerCase();
-  
-  // If user already typed a full email, use it directly
+
   if (trimmed.includes('@')) {
     return trimmed;
   }
 
-  // If VITE_ADMIN_EMAIL is defined and user typed 'admin' (or matches the admin alias), use the configured admin email
   const configuredAdminEmail = import.meta.env.VITE_ADMIN_EMAIL?.trim().toLowerCase();
   if (configuredAdminEmail && (trimmed === 'admin' || trimmed === configuredAdminEmail.split('@')[0])) {
     return configuredAdminEmail;
   }
 
-  // Default deterministic internal email for standard usernames
   return `${trimmed}@sia-it.local`;
 };
 
-// Map Firebase Auth error codes to user-friendly Arabic/English messages
+const SIGN_IN_FAILED_CODES = new Set([
+  'auth/user-not-found',
+  'auth/wrong-password',
+  'auth/invalid-credential',
+  'auth/invalid-login-credentials',
+]);
+
+const PROVIDER_UNAVAILABLE_CODES = new Set([
+  'auth/operation-not-allowed',
+  'auth/configuration-not-found',
+  'auth/admin-restricted-operation',
+]);
+
 const getAuthErrorMessage = (errorCode: string): string => {
   switch (errorCode) {
     case 'auth/user-not-found':
     case 'auth/wrong-password':
     case 'auth/invalid-credential':
     case 'auth/invalid-login-credentials':
+    case 'auth/email-already-in-use':
       return 'اسم المستخدم أو كلمة المرور غير صحيحة (Invalid username or password)';
+    case 'auth/weak-password':
+      return 'كلمة المرور يجب ألا تقل عن 6 أحرف (Password must be at least 6 characters)';
     case 'auth/invalid-email':
       return 'صيغة البريد الإلكتروني أو اسم المستخدم غير صالحة (Invalid email/username format)';
     case 'auth/too-many-requests':
@@ -68,6 +121,33 @@ const getAuthErrorMessage = (errorCode: string): string => {
   }
 };
 
+const applyAuthenticated = (
+  set: (partial: Partial<AuthState>) => void,
+  session: SessionUser,
+  username: string,
+): void => {
+  set({
+    user: session,
+    username,
+    loading: false,
+    error: null,
+  });
+};
+
+const establishLocalSession = (
+  set: (partial: Partial<AuthState>) => void,
+  usernameInput: string,
+): void => {
+  const email = resolveInternalEmail(usernameInput);
+  const session: SessionUser = {
+    uid: `local:${email}`,
+    email,
+  };
+  const username = usernameInput.trim();
+  writeLocalSession(session, username);
+  applyAuthenticated(set, session, username);
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: true,
@@ -75,14 +155,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   username: null,
 
   initAuth: () => {
-    // If Firebase is not configured, finish loading state immediately to show login screen with warning
+    const localSession = readLocalSession();
+    if (localSession) {
+      applyAuthenticated(set, localSession.user, localSession.username);
+    }
+
     if (!isFirebaseConfigured()) {
-      set({
-        user: null,
-        username: null,
-        loading: false,
-        error: null,
-      });
+      if (!localSession) {
+        set({
+          user: null,
+          username: null,
+          loading: false,
+          error: null,
+        });
+      }
       return () => {};
     }
 
@@ -91,25 +177,31 @@ export const useAuthStore = create<AuthState>((set) => ({
         auth,
         (firebaseUser) => {
           if (firebaseUser) {
-            const derivedUsername = firebaseUser.email
-              ? firebaseUser.email.split('@')[0]
-              : 'admin';
-            set({
-              user: firebaseUser,
-              username: derivedUsername,
-              loading: false,
-              error: null,
-            });
-          } else {
-            set({
-              user: null,
-              username: null,
-              loading: false,
-              error: null,
-            });
+            clearLocalSession();
+            const session = toSessionUser(firebaseUser);
+            applyAuthenticated(set, session, usernameFromSession(session, 'admin'));
+            return;
           }
+
+          const restored = readLocalSession();
+          if (restored) {
+            applyAuthenticated(set, restored.user, restored.username);
+            return;
+          }
+
+          set({
+            user: null,
+            username: null,
+            loading: false,
+            error: null,
+          });
         },
         (err) => {
+          const restored = readLocalSession();
+          if (restored) {
+            applyAuthenticated(set, restored.user, restored.username);
+            return;
+          }
           set({
             user: null,
             username: null,
@@ -120,6 +212,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       );
       return unsubscribe;
     } catch (err: any) {
+      const restored = readLocalSession();
+      if (restored) {
+        applyAuthenticated(set, restored.user, restored.username);
+        return () => {};
+      }
       set({
         user: null,
         username: null,
@@ -133,33 +230,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (usernameInput: string, passwordInput: string) => {
     set({ loading: true, error: null });
 
-    // Guard: Prevent sending requests with placeholder or missing Firebase credentials
-    if (!isFirebaseConfigured()) {
-      const configError = getFirebaseConfigError() || 'Firebase credentials are not configured in .env';
-      set({
-        user: null,
-        username: null,
-        loading: false,
-        error: configError,
-      });
-      throw new Error(configError);
-    }
-
-    try {
-      const email = resolveInternalEmail(usernameInput);
-      const userCredential = await signInWithEmailAndPassword(auth, email, passwordInput);
-      const derivedUsername = userCredential.user.email
-        ? userCredential.user.email.split('@')[0]
-        : usernameInput;
-
-      set({
-        user: userCredential.user,
-        username: derivedUsername,
-        loading: false,
-        error: null,
-      });
-    } catch (err: any) {
-      const message = getAuthErrorMessage(err?.code || '');
+    if (passwordInput.length < 6) {
+      const message = getAuthErrorMessage('auth/weak-password');
       set({
         user: null,
         username: null,
@@ -168,11 +240,78 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
       throw new Error(message);
     }
+
+    if (!isFirebaseConfigured()) {
+      const configError = getFirebaseConfigError();
+      if (configError) {
+        set({
+          user: null,
+          username: null,
+          loading: false,
+          error: configError,
+        });
+        throw new Error(configError);
+      }
+      establishLocalSession(set, usernameInput);
+      return;
+    }
+
+    const email = resolveInternalEmail(usernameInput);
+    const derivedUsername = usernameInput.trim();
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, passwordInput);
+      clearLocalSession();
+      applyAuthenticated(set, toSessionUser(userCredential.user), derivedUsername);
+      return;
+    } catch (signInError: any) {
+      const signInCode = signInError?.code || '';
+
+      if (PROVIDER_UNAVAILABLE_CODES.has(signInCode) || signInCode === 'auth/network-request-failed') {
+        establishLocalSession(set, usernameInput);
+        return;
+      }
+
+      if (!SIGN_IN_FAILED_CODES.has(signInCode) && signInCode !== 'auth/invalid-email') {
+        const message = getAuthErrorMessage(signInCode);
+        set({
+          user: null,
+          username: null,
+          loading: false,
+          error: message,
+        });
+        throw new Error(message);
+      }
+
+      try {
+        const created = await createUserWithEmailAndPassword(auth, email, passwordInput);
+        clearLocalSession();
+        applyAuthenticated(set, toSessionUser(created.user), derivedUsername);
+        return;
+      } catch (signUpError: any) {
+        const signUpCode = signUpError?.code || '';
+
+        if (PROVIDER_UNAVAILABLE_CODES.has(signUpCode)) {
+          establishLocalSession(set, usernameInput);
+          return;
+        }
+
+        const message = getAuthErrorMessage(signUpCode || signInCode);
+        set({
+          user: null,
+          username: null,
+          loading: false,
+          error: message,
+        });
+        throw new Error(message);
+      }
+    }
   },
 
   logout: async () => {
     set({ loading: true });
     try {
+      clearLocalSession();
       if (isFirebaseConfigured()) {
         await firebaseSignOut(auth);
       }

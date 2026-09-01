@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useToastStore } from '../store/useToastStore';
+import { getFirebaseConfigError } from '../lib/firebase';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,11 +26,11 @@ export const LoginPage: React.FC = () => {
   const { login, user, loading: authLoading, error, clearError } = useAuthStore();
   const { addToast } = useToastStore();
 
-  const [username, setUsername] = useState('admin');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(getFirebaseConfigError());
 
   // If already authenticated, redirect to dashboard or intended route
   useEffect(() => {
@@ -52,6 +53,11 @@ export const LoginPage: React.FC = () => {
 
     if (!password) {
       setValidationError('يرجى إدخال كلمة المرور (Password is required)');
+      return;
+    }
+
+    if (password.length < 6) {
+      setValidationError('كلمة المرور يجب ألا تقل عن 6 أحرف (Password must be at least 6 characters)');
       return;
     }
 
@@ -121,7 +127,7 @@ export const LoginPage: React.FC = () => {
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             {/* Username Field */}
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5 text-right font-mono">
@@ -136,8 +142,9 @@ export const LoginPage: React.FC = () => {
                     if (validationError) setValidationError(null);
                   }}
                   disabled={isSubmitting}
-                  placeholder="admin"
-                  autoComplete="username"
+                  placeholder=""
+                  autoComplete="off"
+                  name="sia-username"
                   className="w-full pl-3 pr-10 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono transition-all disabled:opacity-50"
                   dir="ltr"
                 />
@@ -159,8 +166,9 @@ export const LoginPage: React.FC = () => {
                     if (validationError) setValidationError(null);
                   }}
                   disabled={isSubmitting}
-                  placeholder="••••••••••••"
-                  autoComplete="current-password"
+                  placeholder=""
+                  autoComplete="new-password"
+                  name="sia-password"
                   className="w-full pl-10 pr-10 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono transition-all disabled:opacity-50"
                   dir="ltr"
                 />
