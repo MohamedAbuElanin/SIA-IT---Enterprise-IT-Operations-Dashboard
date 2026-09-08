@@ -89,7 +89,16 @@ export const useKBStore = create<KBStore>((set, get) => ({
 
   addArticle: async (articleData) => {
     try {
-      await addKBDoc(articleData);
+      const newId = await addKBDoc(articleData);
+      const newArticle: KBArticle = {
+        ...articleData,
+        id: newId,
+        viewsCount: 0,
+      };
+      set((state) => {
+        if (state.articles.some((a) => a.id === newId)) return state;
+        return { articles: [newArticle, ...state.articles], error: null };
+      });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;
@@ -98,9 +107,11 @@ export const useKBStore = create<KBStore>((set, get) => ({
 
   updateArticle: async (id, updated) => {
     try {
+      set((state) => ({
+        articles: state.articles.map((a) => (a.id === id ? { ...a, ...updated } : a)),
+        selectedArticle: state.selectedArticle?.id === id ? { ...state.selectedArticle, ...updated } : state.selectedArticle,
+      }));
       await updateKBDoc(id, updated);
-      const sel = get().selectedArticle;
-      if (sel?.id === id) set({ selectedArticle: { ...sel, ...updated } });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;
@@ -109,8 +120,11 @@ export const useKBStore = create<KBStore>((set, get) => ({
 
   deleteArticle: async (id) => {
     try {
+      set((state) => ({
+        articles: state.articles.filter((a) => a.id !== id),
+        selectedArticle: state.selectedArticle?.id === id ? null : state.selectedArticle,
+      }));
       await deleteKBDoc(id);
-      if (get().selectedArticle?.id === id) set({ selectedArticle: null });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;

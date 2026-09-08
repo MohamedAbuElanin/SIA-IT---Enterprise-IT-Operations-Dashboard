@@ -78,7 +78,25 @@ export const useMaintenanceStore = create<MaintenanceStore>((set, get) => ({
   // ── Firestore CRUD ─────────────────────────────────────────────────────────
   createRecord: async (recordData) => {
     try {
-      await createMaintenanceDoc(recordData);
+      const newId = await createMaintenanceDoc(recordData);
+      const newRecord: MaintenanceRecord = {
+        ...recordData,
+        id: newId,
+        ticketNumber: `INC-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`,
+        timeline: [
+          {
+            id: `tl-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            author: 'IT Officer',
+            note: `Ticket created. Problem: ${recordData.problem.substring(0, 100)}`,
+            status: 'Open',
+          },
+        ],
+      };
+      set((state) => {
+        if (state.records.some((r) => r.id === newId)) return state;
+        return { records: [newRecord, ...state.records], error: null };
+      });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;
@@ -87,10 +105,11 @@ export const useMaintenanceStore = create<MaintenanceStore>((set, get) => ({
 
   updateRecordStatus: async (id, status) => {
     try {
+      set((state) => ({
+        records: state.records.map((r) => (r.id === id ? { ...r, status } : r)),
+        selectedRecord: state.selectedRecord?.id === id ? { ...state.selectedRecord, status } : state.selectedRecord,
+      }));
       await updateMaintenanceStatusDoc(id, status);
-      // Sync selectedRecord if it's the ticket being updated
-      const sel = get().selectedRecord;
-      if (sel?.id === id) set({ selectedRecord: { ...sel, status } });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;
@@ -99,9 +118,11 @@ export const useMaintenanceStore = create<MaintenanceStore>((set, get) => ({
 
   updateRecord: async (id, updated) => {
     try {
+      set((state) => ({
+        records: state.records.map((r) => (r.id === id ? { ...r, ...updated } : r)),
+        selectedRecord: state.selectedRecord?.id === id ? { ...state.selectedRecord, ...updated } : state.selectedRecord,
+      }));
       await updateMaintenanceDoc(id, updated);
-      const sel = get().selectedRecord;
-      if (sel?.id === id) set({ selectedRecord: { ...sel, ...updated } });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;
@@ -110,8 +131,11 @@ export const useMaintenanceStore = create<MaintenanceStore>((set, get) => ({
 
   deleteRecord: async (id) => {
     try {
+      set((state) => ({
+        records: state.records.filter((r) => r.id !== id),
+        selectedRecord: state.selectedRecord?.id === id ? null : state.selectedRecord,
+      }));
       await deleteMaintenanceDoc(id);
-      if (get().selectedRecord?.id === id) set({ selectedRecord: null });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;

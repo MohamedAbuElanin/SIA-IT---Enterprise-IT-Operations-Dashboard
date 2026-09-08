@@ -104,6 +104,8 @@ export const MaintenancePage: React.FC = () => {
     attachments: [] as string[],
   });
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!problem) return;
@@ -114,36 +116,65 @@ export const MaintenancePage: React.FC = () => {
     }
   };
 
-  const executeSave = () => {
-    const payload = buildRecordPayload();
-    if (formMode === 'edit' && editingId) {
-      updateRecord(editingId, payload);
-      addToast({ tone: 'success', title: 'تم تحديث التذكرة', description: problem });
-    } else {
-      createRecord(payload);
-      addToast({ tone: 'success', title: 'تم إنشاء تذكرة الصيانة', description: problem });
+  const executeSave = async () => {
+    setIsSaving(true);
+    try {
+      const payload = buildRecordPayload();
+      if (formMode === 'edit' && editingId) {
+        await updateRecord(editingId, payload);
+        addToast({ tone: 'success', title: 'تم تحديث التذكرة', description: problem });
+      } else {
+        await createRecord(payload);
+        addToast({ tone: 'success', title: 'تم إنشاء تذكرة الصيانة بنجاح', description: problem });
+      }
+      closeFormModal();
+      setShowSaveConfirm(false);
+    } catch (err: any) {
+      addToast({
+        tone: 'error',
+        title: 'فشل حفظ التذكرة',
+        description: err?.message || 'حدث خطأ أثناء حفظ التذكرة في قاعدة البيانات',
+      });
+    } finally {
+      setIsSaving(false);
     }
-    closeFormModal();
-    setShowSaveConfirm(false);
   };
 
   const requestStatusChange = (id: string, newStatus: TicketStatus, ticketNumber: string) => {
     setStatusChangeTarget({ id, newStatus, ticketNumber });
   };
 
-  const confirmStatusChange = () => {
+  const confirmStatusChange = async () => {
     if (!statusChangeTarget) return;
-    updateRecordStatus(statusChangeTarget.id, statusChangeTarget.newStatus);
-    addToast({ tone: 'success', title: 'تم تحديث الحالة', description: statusChangeTarget.ticketNumber });
-    if (selectedRecord?.id === statusChangeTarget.id) setSelectedRecord(null);
-    setStatusChangeTarget(null);
+    try {
+      await updateRecordStatus(statusChangeTarget.id, statusChangeTarget.newStatus);
+      addToast({ tone: 'success', title: 'تم تحديث الحالة', description: statusChangeTarget.ticketNumber });
+      if (selectedRecord?.id === statusChangeTarget.id) setSelectedRecord(null);
+    } catch (err: any) {
+      addToast({
+        tone: 'error',
+        title: 'فشل تحديث الحالة',
+        description: err?.message || 'تعذر تحديث الحالة في قاعدة البيانات',
+      });
+    } finally {
+      setStatusChangeTarget(null);
+    }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    deleteRecord(deleteTarget.id);
-    addToast({ tone: 'info', title: 'تم حذف التذكرة', description: deleteTarget.ticketNumber });
-    setDeleteTarget(null);
+    try {
+      await deleteRecord(deleteTarget.id);
+      addToast({ tone: 'info', title: 'تم حذف التذكرة', description: deleteTarget.ticketNumber });
+    } catch (err: any) {
+      addToast({
+        tone: 'error',
+        title: 'فشل حذف التذكرة',
+        description: err?.message || 'تعذر الحذف من قاعدة البيانات',
+      });
+    } finally {
+      setDeleteTarget(null);
+    }
   };
 
   const columns: ColumnDef<MaintenanceRecord>[] = [
@@ -447,8 +478,10 @@ export const MaintenancePage: React.FC = () => {
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-            <Button variant="outline" onClick={closeFormModal}>إلغاء</Button>
-            <Button variant="primary" type="submit">{formMode === 'edit' ? 'حفظ التعديلات' : 'حفظ وإنشاء التذكرة'}</Button>
+            <Button variant="outline" onClick={closeFormModal} disabled={isSaving}>إلغاء</Button>
+            <Button variant="primary" type="submit" disabled={isSaving}>
+              {isSaving ? 'جاري الحفظ...' : formMode === 'edit' ? 'حفظ التعديلات' : 'حفظ وإنشاء التذكرة'}
+            </Button>
           </div>
         </form>
       </Modal>

@@ -81,8 +81,15 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
   // ── Firestore CRUD ─────────────────────────────────────────────────────────
   addAsset: async (assetData) => {
     try {
-      await addAssetDoc(assetData);
-      // onSnapshot will push the new doc into `assets` automatically
+      const newId = await addAssetDoc(assetData);
+      const newAsset: ITAsset = {
+        ...assetData,
+        id: newId,
+      };
+      set((state) => {
+        if (state.assets.some((a) => a.id === newId)) return state;
+        return { assets: [newAsset, ...state.assets], error: null };
+      });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err; // re-throw so the UI can show a toast
@@ -91,10 +98,11 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
 
   updateAsset: async (id, updated) => {
     try {
+      set((state) => ({
+        assets: state.assets.map((a) => (a.id === id ? { ...a, ...updated } : a)),
+        selectedAsset: state.selectedAsset?.id === id ? { ...state.selectedAsset, ...updated } : state.selectedAsset,
+      }));
       await updateAssetDoc(id, updated);
-      // Optimistically refresh selectedAsset if it's the one being edited
-      const sel = get().selectedAsset;
-      if (sel?.id === id) set({ selectedAsset: { ...sel, ...updated } });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;
@@ -103,9 +111,11 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
 
   deleteAsset: async (id) => {
     try {
+      set((state) => ({
+        assets: state.assets.filter((a) => a.id !== id),
+        selectedAsset: state.selectedAsset?.id === id ? null : state.selectedAsset,
+      }));
       await deleteAssetDoc(id);
-      const sel = get().selectedAsset;
-      if (sel?.id === id) set({ selectedAsset: null });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;
@@ -116,6 +126,11 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
     try {
       const asset = get().assets.find((a) => a.id === id);
       if (!asset) return;
+      const nextVal = !(asset.isFavorite ?? false);
+      set((state) => ({
+        assets: state.assets.map((a) => (a.id === id ? { ...a, isFavorite: nextVal } : a)),
+        selectedAsset: state.selectedAsset?.id === id ? { ...state.selectedAsset, isFavorite: nextVal } : state.selectedAsset,
+      }));
       await toggleAssetFavoriteDoc(id, asset.isFavorite ?? false);
     } catch (err) {
       set({ error: (err as Error).message });

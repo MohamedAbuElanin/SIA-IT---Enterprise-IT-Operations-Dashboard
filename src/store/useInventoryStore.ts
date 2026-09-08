@@ -70,7 +70,15 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
   // ── Firestore CRUD ─────────────────────────────────────────────────────────
   addItem: async (itemData) => {
     try {
-      await addInventoryDoc(itemData);
+      const newId = await addInventoryDoc(itemData);
+      const newItem: InventoryItem = {
+        ...itemData,
+        id: newId,
+      };
+      set((state) => {
+        if (state.inventory.some((i) => i.id === newId)) return state;
+        return { inventory: [newItem, ...state.inventory], error: null };
+      });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;
@@ -79,9 +87,20 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
 
   updateStock: async (id, delta) => {
     try {
-      // Pass current item so the service can derive the new status
       const currentItem = get().inventory.find((i) => i.id === id);
       if (!currentItem) throw new Error(`Inventory item ${id} not found`);
+
+      const newQty = Math.max(0, currentItem.quantityInStock + delta);
+      let newStatus: InventoryItem['status'] = 'In Stock';
+      if (newQty === 0) newStatus = 'Out of Stock';
+      else if (newQty <= currentItem.minThreshold) newStatus = 'Low Stock';
+
+      set((state) => ({
+        inventory: state.inventory.map((i) =>
+          i.id === id ? { ...i, quantityInStock: newQty, status: newStatus } : i
+        ),
+      }));
+
       await updateStockDoc(id, delta, currentItem);
     } catch (err) {
       set({ error: (err as Error).message });
@@ -91,6 +110,9 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
 
   updateItem: async (id, updated) => {
     try {
+      set((state) => ({
+        inventory: state.inventory.map((i) => (i.id === id ? { ...i, ...updated } : i)),
+      }));
       await updateInventoryDoc(id, updated);
     } catch (err) {
       set({ error: (err as Error).message });
@@ -100,6 +122,9 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
 
   deleteItem: async (id) => {
     try {
+      set((state) => ({
+        inventory: state.inventory.filter((i) => i.id !== id),
+      }));
       await deleteInventoryDoc(id);
     } catch (err) {
       set({ error: (err as Error).message });

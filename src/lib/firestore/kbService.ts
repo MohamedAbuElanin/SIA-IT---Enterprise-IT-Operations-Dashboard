@@ -22,10 +22,16 @@ const COL = 'kbArticles';
 const colRef = () => collection(db, COL);
 
 function mapDoc(snap: QuerySnapshot<DocumentData>): KBArticle[] {
-  return snap.docs.map((d) => ({
-    ...(d.data() as Omit<KBArticle, 'id'>),
-    id: d.id,
-  }));
+  return snap.docs
+    .map((d) => ({
+      ...(d.data() as Omit<KBArticle, 'id'>),
+      id: d.id,
+    }))
+    .sort((a: any, b: any) => {
+      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return (timeB || 0) - (timeA || 0);
+    });
 }
 
 /**
@@ -36,8 +42,7 @@ export function subscribeToKB(
   onData: (articles: KBArticle[]) => void,
   onError: (err: Error) => void,
 ): () => void {
-  const q = query(colRef(), orderBy('createdAt', 'desc'));
-  return onSnapshot(q, (snap) => onData(mapDoc(snap)), onError);
+  return onSnapshot(colRef(), (snap) => onData(mapDoc(snap)), onError);
 }
 
 /** Add a new KB article. Returns the Firestore document ID. */

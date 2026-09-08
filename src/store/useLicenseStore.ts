@@ -68,7 +68,15 @@ export const useLicenseStore = create<LicenseStore>((set, get) => ({
   // ── Firestore CRUD ─────────────────────────────────────────────────────────
   addLicense: async (licenseData) => {
     try {
-      await addLicenseDoc(licenseData);
+      const newId = await addLicenseDoc(licenseData);
+      const newLicense: SoftwareLicense = {
+        ...licenseData,
+        id: newId,
+      };
+      set((state) => {
+        if (state.licenses.some((l) => l.id === newId)) return state;
+        return { licenses: [newLicense, ...state.licenses], error: null };
+      });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;
@@ -77,9 +85,11 @@ export const useLicenseStore = create<LicenseStore>((set, get) => ({
 
   updateLicense: async (id, updated) => {
     try {
+      set((state) => ({
+        licenses: state.licenses.map((l) => (l.id === id ? { ...l, ...updated } : l)),
+        selectedLicense: state.selectedLicense?.id === id ? { ...state.selectedLicense, ...updated } : state.selectedLicense,
+      }));
       await updateLicenseDoc(id, updated);
-      const sel = get().selectedLicense;
-      if (sel?.id === id) set({ selectedLicense: { ...sel, ...updated } });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;
@@ -88,8 +98,11 @@ export const useLicenseStore = create<LicenseStore>((set, get) => ({
 
   deleteLicense: async (id) => {
     try {
+      set((state) => ({
+        licenses: state.licenses.filter((l) => l.id !== id),
+        selectedLicense: state.selectedLicense?.id === id ? null : state.selectedLicense,
+      }));
       await deleteLicenseDoc(id);
-      if (get().selectedLicense?.id === id) set({ selectedLicense: null });
     } catch (err) {
       set({ error: (err as Error).message });
       throw err;

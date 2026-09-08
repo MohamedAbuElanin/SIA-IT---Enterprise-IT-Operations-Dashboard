@@ -111,6 +111,8 @@ export const InventoryPage: React.FC = () => {
     };
   };
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sku || !name) return;
@@ -128,24 +130,44 @@ export const InventoryPage: React.FC = () => {
     }
   };
 
-  const executeSave = () => {
-    const payload = buildItemPayload();
-    if (formMode === 'edit' && editingId) {
-      updateItem(editingId, payload);
-      addToast({ tone: 'success', title: 'تم تحديث الصنف', description: `${name} (${sku})` });
-    } else {
-      addItem(payload);
-      addToast({ tone: 'success', title: 'Inventory Item Added', description: `${name} (${sku})` });
+  const executeSave = async () => {
+    setIsSaving(true);
+    try {
+      const payload = buildItemPayload();
+      if (formMode === 'edit' && editingId) {
+        await updateItem(editingId, payload);
+        addToast({ tone: 'success', title: 'تم تحديث الصنف', description: `${name} (${sku})` });
+      } else {
+        await addItem(payload);
+        addToast({ tone: 'success', title: 'تمت إضافة الصنف بنجاح', description: `${name} (${sku})` });
+      }
+      closeFormModal();
+      setShowSaveConfirm(false);
+    } catch (err: any) {
+      addToast({
+        tone: 'error',
+        title: 'فشل حفظ الصنف',
+        description: err?.message || 'حدث خطأ أثناء حفظ الصنف في قاعدة البيانات',
+      });
+    } finally {
+      setIsSaving(false);
     }
-    closeFormModal();
-    setShowSaveConfirm(false);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    deleteItem(deleteTarget.id);
-    addToast({ tone: 'info', title: 'تم حذف الصنف', description: deleteTarget.sku });
-    setDeleteTarget(null);
+    try {
+      await deleteItem(deleteTarget.id);
+      addToast({ tone: 'info', title: 'تم حذف الصنف', description: deleteTarget.sku });
+    } catch (err: any) {
+      addToast({
+        tone: 'error',
+        title: 'فشل حذف الصنف',
+        description: err?.message || 'تعذر الحذف من قاعدة البيانات',
+      });
+    } finally {
+      setDeleteTarget(null);
+    }
   };
 
   const columns: ColumnDef<InventoryItem>[] = [
@@ -425,8 +447,10 @@ export const InventoryPage: React.FC = () => {
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-            <Button variant="outline" onClick={closeFormModal}>إلغاء</Button>
-            <Button variant="primary" type="submit">{formMode === 'edit' ? 'حفظ التعديلات' : 'Save Item'}</Button>
+            <Button variant="outline" onClick={closeFormModal} disabled={isSaving}>إلغاء</Button>
+            <Button variant="primary" type="submit" disabled={isSaving}>
+              {isSaving ? 'جاري الحفظ...' : formMode === 'edit' ? 'حفظ التعديلات' : 'Save Item'}
+            </Button>
           </div>
         </form>
       </Modal>

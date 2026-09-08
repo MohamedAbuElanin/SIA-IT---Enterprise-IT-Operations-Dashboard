@@ -171,6 +171,8 @@ export const AssetsPage: React.FC = () => {
     valueUSD: Number(valueUSD),
   });
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!deviceName || !assetNumber) return;
@@ -188,24 +190,44 @@ export const AssetsPage: React.FC = () => {
     }
   };
 
-  const executeSave = () => {
-    const payload = buildAssetPayload();
-    if (formMode === 'edit' && editingId) {
-      updateAsset(editingId, payload);
-      addToast({ tone: 'success', title: 'تم تحديث الجهاز', description: `${deviceName} (${assetNumber})` });
-    } else {
-      addAsset(payload);
-      addToast({ tone: 'success', title: 'Asset Registered Successfully', description: `${deviceName} (${assetNumber})` });
+  const executeSave = async () => {
+    setIsSaving(true);
+    try {
+      const payload = buildAssetPayload();
+      if (formMode === 'edit' && editingId) {
+        await updateAsset(editingId, payload);
+        addToast({ tone: 'success', title: 'تم تحديث الجهاز', description: `${deviceName} (${assetNumber})` });
+      } else {
+        await addAsset(payload);
+        addToast({ tone: 'success', title: 'تم تسجيل الجهاز بنجاح', description: `${deviceName} (${assetNumber})` });
+      }
+      closeFormModal();
+      setShowSaveConfirm(false);
+    } catch (err: any) {
+      addToast({
+        tone: 'error',
+        title: 'فشل حفظ الجهاز',
+        description: err?.message || 'حدث خطأ أثناء حفظ الجهاز في قاعدة البيانات',
+      });
+    } finally {
+      setIsSaving(false);
     }
-    closeFormModal();
-    setShowSaveConfirm(false);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    deleteAsset(deleteTarget.id);
-    addToast({ tone: 'info', title: 'تم حذف الجهاز', description: deleteTarget.assetNumber });
-    setDeleteTarget(null);
+    try {
+      await deleteAsset(deleteTarget.id);
+      addToast({ tone: 'info', title: 'تم حذف الجهاز', description: deleteTarget.assetNumber });
+    } catch (err: any) {
+      addToast({
+        tone: 'error',
+        title: 'فشل حذف الجهاز',
+        description: err?.message || 'تعذر الحذف من قاعدة البيانات',
+      });
+    } finally {
+      setDeleteTarget(null);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -614,8 +636,10 @@ export const AssetsPage: React.FC = () => {
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
-            <Button variant="outline" onClick={closeFormModal}>إلغاء</Button>
-            <Button variant="primary" type="submit">{formMode === 'edit' ? 'حفظ التعديلات' : 'Save Asset'}</Button>
+            <Button variant="outline" onClick={closeFormModal} disabled={isSaving}>إلغاء</Button>
+            <Button variant="primary" type="submit" disabled={isSaving}>
+              {isSaving ? 'جاري الحفظ...' : formMode === 'edit' ? 'حفظ التعديلات' : 'Save Asset'}
+            </Button>
           </div>
         </form>
       </Modal>
